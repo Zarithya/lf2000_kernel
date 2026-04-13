@@ -2234,10 +2234,10 @@ int dwc_otg_pcd_init(struct platform_device *pdev)
 		((GET_CORE_IF(pcd)->hwcfg2.b.hs_phy_type == 2) &&
 		 (GET_CORE_IF(pcd)->hwcfg2.b.fs_phy_type == 1) &&
 		 (GET_CORE_IF(pcd)->core_params->ulpi_fs_ls))) {
-		pcd->gadget.is_dualspeed = 0;
+		pcd->gadget.max_speed = USB_SPEED_FULL;
 	}
 	else {
-		pcd->gadget.is_dualspeed = 1;
+		pcd->gadget.max_speed = USB_SPEED_HIGH;
 	}
 
 	if ((otg_dev->core_if->hwcfg2.b.op_mode == DWC_HWCFG2_OP_MODE_NO_SRP_CAPABLE_DEVICE) ||
@@ -2254,7 +2254,7 @@ int dwc_otg_pcd_init(struct platform_device *pdev)
 	pcd->driver = 0;
 	/* Register the gadget device */
 printk("%s: 1\n",__func__);
-	retval = device_register(&pcd->gadget.dev);
+	retval = usb_add_gadget_udc(&pdev->dev, &pcd->gadget);
 	if (retval != 0) {
 		kfree (pcd);
 printk("%s: 2\n",__func__);
@@ -2287,7 +2287,7 @@ printk("%s: 2\n",__func__);
 				IRQF_SHARED, pcd->gadget.name, pcd);
 	if (retval != 0) {
 		DWC_ERROR("request of irq%d failed\n", otg_dev->irq);
-		device_unregister(&pcd->gadget.dev);
+		usb_del_gadget_udc(&pcd->gadget);
 		kfree (pcd);
 		return -EBUSY;
 	}
@@ -2299,7 +2299,7 @@ printk("%s: 2\n",__func__);
 		pcd->setup_pkt = dma_alloc_coherent (NULL, sizeof (*pcd->setup_pkt) * 5, &pcd->setup_pkt_dma_handle, 0);
 		if (pcd->setup_pkt == 0) {
 			free_irq(otg_dev->irq, pcd);
-			device_unregister(&pcd->gadget.dev);
+			usb_del_gadget_udc(&pcd->gadget);
 			kfree (pcd);
 			return -ENOMEM;
 		}
@@ -2308,7 +2308,7 @@ printk("%s: 2\n",__func__);
 		if (pcd->status_buf == 0) {
 			dma_free_coherent(NULL, sizeof(*pcd->setup_pkt), pcd->setup_pkt, pcd->setup_pkt_dma_handle);
 			free_irq(otg_dev->irq, pcd);
-			device_unregister(&pcd->gadget.dev);
+			usb_del_gadget_udc(&pcd->gadget);
 			kfree (pcd);
 			return -ENOMEM;
 		}
@@ -2338,7 +2338,7 @@ printk("%s: 2\n",__func__);
 				dma_free_coherent(NULL, sizeof(*pcd->setup_pkt), pcd->setup_pkt, pcd->setup_pkt_dma_handle);
 
 				free_irq(otg_dev->irq, pcd);
-				device_unregister(&pcd->gadget.dev);
+				usb_del_gadget_udc(&pcd->gadget);
 				kfree (pcd);
 
 				return -ENOMEM;
@@ -2349,7 +2349,7 @@ printk("%s: 2\n",__func__);
 		pcd->setup_pkt = kmalloc (sizeof (*pcd->setup_pkt) * 5, GFP_KERNEL);
 		if (pcd->setup_pkt == 0) {
 			free_irq(otg_dev->irq, pcd);
-			device_unregister(&pcd->gadget.dev);
+			usb_del_gadget_udc(&pcd->gadget);
 			kfree (pcd);
 			return -ENOMEM;
 		}
@@ -2358,7 +2358,7 @@ printk("%s: 2\n",__func__);
 		if (pcd->status_buf == 0) {
 			kfree(pcd->setup_pkt);
 			free_irq(otg_dev->irq, pcd);
-			device_unregister(&pcd->gadget.dev);
+			usb_del_gadget_udc(&pcd->gadget);
 			kfree (pcd);
 			return -ENOMEM;
 		}
@@ -2395,7 +2395,7 @@ void dwc_otg_pcd_remove(struct platform_device *pdev)
 				 pcd->driver->driver.name);
 		usb_gadget_unregister_driver(pcd->driver);
 	}
-	device_unregister(&pcd->gadget.dev);
+	usb_del_gadget_udc(&pcd->gadget);
 
 	if (GET_CORE_IF(pcd)->dma_enable) {
 		dma_free_coherent (NULL, sizeof (*pcd->setup_pkt) * 5, pcd->setup_pkt, pcd->setup_pkt_dma_handle);
@@ -2415,7 +2415,7 @@ void dwc_otg_pcd_remove(struct platform_device *pdev)
 	kfree(pcd);
 	otg_dev->pcd = 0;
 }
-
+#if 0
 /**
  * This function registers a gadget driver with the PCD.
  *
@@ -2433,7 +2433,7 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver,
 
 	DWC_DEBUGPL(DBG_PCD, "registering gadget driver '%s'\n", driver->driver.name);
 
-	if (!driver || driver->speed == USB_SPEED_UNKNOWN ||
+	if (!driver || driver->max_speed == USB_SPEED_UNKNOWN ||
 		!bind ||
 		!driver->unbind ||
 		!driver->disconnect ||
@@ -2498,5 +2498,5 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 	return 0;
 }
 EXPORT_SYMBOL(usb_gadget_unregister_driver);
-
+#endif
 #endif /* DWC_HOST_ONLY */

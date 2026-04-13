@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
  * ========================================================================== */
-#ifndef DWC_HOST_ONLY
+//#ifndef DWC_HOST_ONLY
 #if !defined(__DWC_PCD_H__)
 #define __DWC_PCD_H__
 
@@ -289,4 +289,4 @@ DWC_DEBUGPL(DBG_PCDV,"    dwc_ep allocated aligned buf=%.8x, dma_addr=%.8x, size
 }
 
 #endif
-#endif /* DWC_HOST_ONLY */
+//#endif /* DWC_HOST_ONLY */

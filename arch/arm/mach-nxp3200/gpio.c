@@ -36,16 +36,16 @@ static DEFINE_SPINLOCK(gpio_lock);
 
 extern unsigned lf2000_gpio_l2p(struct gpio_chip* chip, unsigned offset);
 
-static int lf2000_gpio_get_value (struct gpio_chip *chip, unsigned int offset)
+int lf2000_gpio_get_value (unsigned int offset)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
 	pin = offset & LF2000_GPIO_PIN_MASK;
 	return (int)NX_GPIO_GetInputValue(mod, pin);
 }
+EXPORT_SYMBOL(lf2000_gpio_get_value);
 
-static void lf2000_gpio_set_value (struct gpio_chip *chip,
-                                   unsigned int offset, int value)
+void lf2000_gpio_set_value (unsigned int offset, int value)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
@@ -54,8 +54,9 @@ static void lf2000_gpio_set_value (struct gpio_chip *chip,
 	NX_GPIO_SetOutputValue(mod, pin, value);
 	spin_unlock(&gpio_lock);
 }
+EXPORT_SYMBOL(lf2000_gpio_set_value);
 
-static int lf2000_gpio_direction_input (struct gpio_chip *chip, unsigned int offset)
+int lf2000_gpio_direction_input (unsigned int offset)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
@@ -65,9 +66,9 @@ static int lf2000_gpio_direction_input (struct gpio_chip *chip, unsigned int off
 	spin_unlock(&gpio_lock);
 	return 0;
 }
+EXPORT_SYMBOL(lf2000_gpio_direction_input);
 
-static int lf2000_gpio_direction_output (struct gpio_chip *chip,
-                                         unsigned int offset, int value)
+int lf2000_gpio_direction_output (unsigned int offset, int value)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
@@ -78,28 +79,31 @@ static int lf2000_gpio_direction_output (struct gpio_chip *chip,
 	spin_unlock(&gpio_lock);
 	return 0;
 }
+EXPORT_SYMBOL(lf2000_gpio_direction_output);
 
-static int lf2000_gpio_to_irq (struct gpio_chip *chip, unsigned int offset)
+int lf2000_gpio_to_irq (unsigned int offset)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
 	pin = offset & LF2000_GPIO_PIN_MASK;
 	return (pin + IRQ_GPIO_START + (mod<<5)); //Must match gpio_irq_handler
 }
+EXPORT_SYMBOL(lf2000_gpio_to_irq);
 
 /*******************************************************************************
  * GPIO Framework extension
  */
 
-static int lf2000_gpio_get_fn(struct gpio_chip* chip, unsigned offset)
+int lf2000_gpio_get_fn(unsigned offset)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
 	pin = offset & LF2000_GPIO_PIN_MASK;
 	return NX_GPIO_GetPadFunction(mod, pin);
 }
+EXPORT_SYMBOL(lf2000_gpio_get_fn);
 
-static int lf2000_gpio_set_fn(struct gpio_chip* chip, unsigned offset, unsigned function)
+int lf2000_gpio_set_fn(unsigned offset, unsigned function)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
@@ -107,16 +111,18 @@ static int lf2000_gpio_set_fn(struct gpio_chip* chip, unsigned offset, unsigned 
 	NX_GPIO_SetPadFunction(mod, pin, function);
 	return 0;
 }
+EXPORT_SYMBOL(lf2000_gpio_set_fn);
 
-static int lf2000_gpio_get_pu(struct gpio_chip* chip, unsigned offset)
+int lf2000_gpio_get_pu(unsigned offset)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
 	pin = offset & LF2000_GPIO_PIN_MASK;
 	return NX_GPIO_GetPullUpEnable(mod, pin);
 }
+EXPORT_SYMBOL(lf2000_gpio_get_pu);
 
-static int lf2000_gpio_set_pu(struct gpio_chip* chip, unsigned offset, unsigned value)
+int lf2000_gpio_set_pu(unsigned offset, unsigned value)
 {
 	unsigned int mod, pin;
 	mod = LF2000_GPIO_PHYS_PORT(offset);
@@ -124,10 +130,11 @@ static int lf2000_gpio_set_pu(struct gpio_chip* chip, unsigned offset, unsigned 
 	NX_GPIO_SetPullUpEnable(mod, pin, value);
 	return 0;
 }
+EXPORT_SYMBOL(lf2000_gpio_set_pu);
 
 #define LF2000_GPIO_CURRENT_BASE 0xC001E100
 
-static int lf2000_gpio_get_cur(struct gpio_chip* chip, unsigned offset)
+int lf2000_gpio_get_cur(unsigned offset)
 {
 	unsigned int mod, pin, reg;
 	unsigned long *ptr;
@@ -138,8 +145,9 @@ static int lf2000_gpio_get_cur(struct gpio_chip* chip, unsigned offset)
 	ptr = (unsigned long*)IO_ADDRESS(reg);
 	return (*ptr & ( 0x3 << (pin * 2) ) ) >> (pin * 2);
 }
+EXPORT_SYMBOL(lf2000_gpio_get_cur);
 
-static int lf2000_gpio_set_cur(struct gpio_chip* chip, unsigned offset, unsigned curr)
+int lf2000_gpio_set_cur(unsigned offset, unsigned curr)
 {
 	unsigned int mod, pin, reg, val, mask;
 	unsigned long *ptr;
@@ -152,6 +160,73 @@ static int lf2000_gpio_set_cur(struct gpio_chip* chip, unsigned offset, unsigned
 	val  = (*ptr & mask) | (curr << (pin * 2) );
 	*ptr = val;
 	return 0;
+}
+EXPORT_SYMBOL(lf2000_gpio_set_cur);
+
+#ifdef CONFIG_GPIOLIB
+static int lf2000_gpiolib_direction_input(struct gpio_chip *chip, unsigned gpio)
+{
+	return lf2000_gpio_direction_input(gpio);
+}
+
+static int lf2000_gpiolib_direction_output(struct gpio_chip *chip, unsigned gpio, int level)
+{
+	return lf2000_gpio_direction_output(gpio, level);
+}
+
+static int lf2000_gpiolib_get_value(struct gpio_chip *chip, unsigned gpio)
+{
+	return lf2000_gpio_get_value(gpio);
+}
+
+static void lf2000_gpiolib_set_value(struct gpio_chip *chip, unsigned gpio, int value)
+{
+	return lf2000_gpio_set_value(gpio, value);
+}
+
+static int lf2000_gpiolib_gpio_request(struct gpio_chip *chip, unsigned gpio)
+{
+	return lf2000_gpio_request(gpio, chip->label);
+}
+
+static void lf2000_gpiolib_gpio_free(struct gpio_chip *chip, unsigned gpio)
+{
+	return lf2000_gpio_free(gpio);
+}
+
+static int lf2000_gpiolib_gpio_to_irq(struct gpio_chip *chip, unsigned gpio)
+{
+	return lf2000_gpio_to_irq(gpio);
+}
+
+static int lf2000_gpiolib_get_fn(struct gpio_chip *chip, unsigned offset)
+{
+	return lf2000_gpio_get_fn(offset);
+}
+
+static int lf2000_gpiolib_set_fn(struct gpio_chip *chip, unsigned offset, unsigned function)
+{
+	return lf2000_gpio_set_fn(offset, function);
+}
+
+static int lf2000_gpiolib_get_pu(struct gpio_chip *chip, unsigned offset)
+{
+	return lf2000_gpio_get_pu(offset);
+}
+
+static int lf2000_gpiolib_set_pu(struct gpio_chip *chip, unsigned offset, unsigned value)
+{
+	return lf2000_gpio_set_pu(offset, value);
+}
+
+static int lf2000_gpiolib_get_cur(struct gpio_chip *chip, unsigned offset)
+{
+	return lf2000_gpio_get_cur(offset);
+}
+
+static int lf2000_gpiolib_set_cur(struct gpio_chip *chip, unsigned offset, unsigned curr)
+{
+	return lf2000_gpio_set_cur(offset, curr);
 }
 
 /* We use 2 chips so that we can have lots of room for logical pins
@@ -168,17 +243,17 @@ static struct gpio_chip lf2000_virtual_gpiochip = {
 
 static struct gpio_chip lf2000_physical_gpiochip = {
 	.label			= "lf2000_physical_gpio",
-	.direction_input	= lf2000_gpio_direction_input,
-	.get			= lf2000_gpio_get_value,
-	.direction_output	= lf2000_gpio_direction_output,
-	.set			= lf2000_gpio_set_value,
-	.to_irq			= lf2000_gpio_to_irq,
-	.set_function		= lf2000_gpio_set_fn,
-	.get_function		= lf2000_gpio_get_fn,
-	.set_pullup		= lf2000_gpio_set_pu,
-	.get_pullup		= lf2000_gpio_get_pu,
-	.set_current		= lf2000_gpio_set_cur,
-	.get_current		= lf2000_gpio_get_cur,
+	.direction_input	= lf2000_gpiolib_direction_input,
+	.get			= lf2000_gpiolib_get_value,
+	.direction_output	= lf2000_gpiolib_direction_output,
+	.set			= lf2000_gpiolib_set_value,
+	.to_irq			= lf2000_gpiolib_gpio_to_irq,
+	.set_function		= lf2000_gpiolib_set_fn,
+	.get_function		= lf2000_gpiolib_get_fn,
+	.set_pullup		= lf2000_gpiolib_set_pu,
+	.get_pullup		= lf2000_gpiolib_get_pu,
+	.set_current		= lf2000_gpiolib_set_cur,
+	.get_current		= lf2000_gpiolib_get_cur,
 	.base			= LF2000_GPIO_PHYS,
 	.ngpio			= 128,
 	.can_sleep		= 0,
@@ -195,6 +270,4 @@ void __init lf2000_gpio_init(void)
 	gpiochip_add(&lf2000_physical_gpiochip);
 	lf2000_gpio_check_didjfi();
 }
-
-
-
+#endif

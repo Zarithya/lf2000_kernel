@@ -31,11 +31,9 @@
 #define	FB_DEV_NAME				"nx-fb"
 #endif
 #define	EHCI_DEV_NAME			"nx-ehci"
-#define	OHCI_DEV_NAME			"nx-ohci"
+#define	OHCI_DEV_NAME			"nexell-ohci"
 #define	OTG_GADGET_DEV_NAME		"lf2000-hsotg"
 #define	I2C_DEV_NAME			"nx-i2c"
-#define	EHCI_DEV_NAME			"nx-ehci"
-#define	OHCI_DEV_NAME			"nx-ohci"
 #define	NAND_DEV_NAME			"nx-nand"
 #define	KEYPAD_DEV_NAME			"nx-keypad"
 #define	TS_DEV_NAME				"nx-ts"			/* Touch */

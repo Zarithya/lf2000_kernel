@@ -45,7 +45,7 @@ extern "C"
 #include "s3c-otg-roothub.h"
 #include "s3c-otg-oci.h"
 
-__inline__ void otg_handle_interrupt(void);
+void otg_handle_interrupt(void);
 
 void process_port_intr(void);
 

@@ -156,7 +156,7 @@ static dwc_otg_core_params_t dwc_otg_module_params = {
 /**
  * Global Debug Level Mask.
  */
-uint32_t g_dbg_lvl = 0; /* OFF */
+uint32_t g_dbg_lvl = 0xFF; /* ALL */
 
 /**
  * This function is called during module intialization to verify that

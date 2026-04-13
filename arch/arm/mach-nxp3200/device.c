@@ -48,6 +48,7 @@
 #include <mach/soc.h>
 #include <mach/spi.h>
 #include <mach/board_revisions.h>
+#include <mach/gpio.h>
 
 /* PCA9555 GPIO Extender */
 #include <linux/i2c/pca953x.h>
@@ -1690,13 +1691,17 @@ void otg_phy_init(void)
 {
 	/* Configure USB as Device */
 	volatile int i;
+	
 	writel(0x0001, (void __iomem *)LF2000_USBOTG_TESTPARM7); /* TESTPARM7 = 0x1 */
 #if defined(CONFIG_USB_LF2000_OTGD) || defined(CONFIG_USB_LF2000_OTGD_MODULE)
 	writel(0x0430, (void __iomem *)LF2000_USBOTG_TESTPARM4); /* TESTPARM4 = 0x430 */
 #else
 	writel(0x0410, (void __iomem *)LF2000_USBOTG_TESTPARM4); /* TESTPARM4 = 0x410 */
 #endif
-	writel(0x0237, (void __iomem *)LF2000_USBOTG_PHYPOR);	 /* PHY POR on (1->0)(auto clear) */
+	// From Nexell HCD (trying to bring up as host?)
+	//writel(0x0237, (void __iomem *)LF2000_USBOTG_PHYPOR);	 /* PHY POR on (1->0)(auto clear) */
+	writel(0x0002, (void __iomem *)LF2000_USBOTG_TESTPARM10);/* Something idk */
+	writel(0x0230, (void __iomem *)LF2000_USBOTG_PHYPOR);	 /* PHY POR on (1->0)(auto clear) */
 	udelay(230);                  		 /* 220us delay need. 230us delayed */
 	for (i = 600; i > 0; i--)
 		/* noop */ ;

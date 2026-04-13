@@ -319,6 +319,7 @@ static void dwc_otg_enable_common_interrupts(dwc_otg_core_if_t *core_if)
 	intr_mask.b.disconnect = 1;
 	intr_mask.b.usbsuspend = 1;
 	intr_mask.b.sessreqintr = 1;
+	intr_mask.b.portintr = 1;
 	dwc_write_reg32(&global_regs->gintmsk, intr_mask.d32);
 }
 

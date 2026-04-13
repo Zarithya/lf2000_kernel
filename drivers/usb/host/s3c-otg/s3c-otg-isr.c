@@ -95,12 +95,12 @@ __inline__ void otg_handle_interrupt(void)
 	if (gintsts.b.otgintr)
 	{
 		// Read Only
-		//otg_dbg(OTG_DBG_ISR, "OTG Interrupt\n");
+		otg_dbg(OTG_DBG_ISR, "OTG Interrupt\n");
 	}
 
 	if (gintsts.b.sofintr)
 	{
-		//otg_dbg(OTG_DBG_ISR, "SOF Interrupt\n");
+		otg_dbg(OTG_DBG_ISR, "SOF Interrupt\n");
 		do_schedule();
 		clearIntr.b.sofintr = 1;
 	}
@@ -286,7 +286,7 @@ void process_port_intr(void)
 			port_flag.b.port_over_current_change = 0;
 	}	
 
-	hprt.b.prtena = 0; //prtena¸¦ writeclear½ÃÅ°¸é ¾ÈµÊ.
+	hprt.b.prtena = 0; //prtenaï¿½ï¿½ writeclearï¿½ï¿½Å°ï¿½ï¿½ ï¿½Èµï¿½.
 	//hprt.b.prtpwr = 0;
 	hprt.b.prtrst = 0;
 	hprt.b.prtconnsts = 0;

@@ -51,6 +51,8 @@
 #include <linux/dma-mapping.h>
 #include <linux/version.h>
 
+#include <linux/lf2000/gpio.h>
+#include <mach/gpio.h>
 #include <mach/irqs.h>
 
 #include "otg_driver.h"

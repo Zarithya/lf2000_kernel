@@ -174,13 +174,13 @@ int oci_core_init(void)
 		/* Program the GINTMSK register.*/
 		gintmsk.b.modemismatch	= 1;
 		gintmsk.b.sofintr 	= 1;
-		//gintmsk.b.otgintr		= 1;
+		gintmsk.b.otgintr		= 1;
 		gintmsk.b.conidstschng	= 1;
 		//gintmsk.b.wkupintr	= 1;
 		gintmsk.b.disconnect	= 1;
 		//gintmsk.b.usbsuspend	= 1;
-		//gintmsk.b.sessreqintr	= 1;
-		//gintmsk.b.portintr	= 1;
+		gintmsk.b.sessreqintr	= 1;
+		gintmsk.b.portintr	= 1;
 		//gintmsk.b.hcintr		= 1;
 		write_reg_32(GINTMSK, gintmsk.d32);
 		

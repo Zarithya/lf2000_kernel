@@ -19,7 +19,8 @@
  */
 #ifndef __GPIO_H__
 #define __GPIO_H__
-
+ 
+#include <linux/lf2000/gpio.h>
 /*------------------------------------------------------------------------------
  * 	data
  */
@@ -59,8 +60,103 @@ enum {
  * 	GPIO Framework
  */
 
+int lf2000_gpio_request(unsigned gpio, const char *label);
+void lf2000_gpio_free(unsigned gpio);
+int lf2000_gpio_irq_request(unsigned gpio, const char *label);
+void lf2000_gpio_irq_free(unsigned gpio);
+int lf2000_gpio_direction_input(unsigned gpio);
+int lf2000_gpio_direction_output(unsigned gpio, int value);
+int lf2000_gpio_get_value(unsigned gpio);
+void lf2000_gpio_set_value(unsigned gpio, int value);
+
 #define ARCH_NR_GPIOS 0x0FFF
-#include <asm-generic/gpio.h>
+
+#ifdef CONFIG_GPIOLIB
+#include <asm-generic/gpio.h>		/* cansleep wrappers */
+
+static inline int gpio_get_value(unsigned int gpio)
+{
+	if (gpio < GPIO_NUMBER_VALUES)
+		return lf2000_gpio_get_value(gpio);
+	else
+		return __gpio_get_value(gpio);
+}
+
+static inline void gpio_set_value(unsigned int gpio, int value)
+{
+	if (gpio < GPIO_NUMBER_VALUES)
+		lf2000_gpio_set_value(gpio, value);
+	else
+		__gpio_set_value(gpio, value);
+}
+
+static inline int gpio_cansleep(unsigned int gpio)
+{
+	return __gpio_cansleep(gpio);
+}
+
+static inline int gpio_to_irq(unsigned gpio)
+{
+	return __gpio_to_irq(gpio);
+}
+
+#else /* !CONFIG_GPIOLIB */
+
+static inline int gpio_request(unsigned gpio, const char *label)
+{
+	return lf2000_gpio_request(gpio, label);
+}
+
+static inline void gpio_free(unsigned gpio)
+{
+	return lf2000_gpio_free(gpio);
+}
+
+static inline int gpio_direction_input(unsigned gpio)
+{
+	return lf2000_gpio_direction_input(gpio);
+}
+
+static inline int gpio_direction_output(unsigned gpio, int value)
+{
+	return lf2000_gpio_direction_output(gpio, value);
+}
+
+static inline int gpio_set_debounce(unsigned gpio, unsigned debounce)
+{
+	return -EINVAL;
+}
+
+static inline int __gpio_get_value(unsigned gpio)
+{
+	return lf2000_gpio_get_value(gpio);
+}
+
+static inline void __gpio_set_value(unsigned gpio, int value)
+{
+	return lf2000_gpio_set_value(gpio, value);
+}
+
+static inline int gpio_get_value(unsigned gpio)
+{
+	return __gpio_get_value(gpio);
+}
+
+static inline void gpio_set_value(unsigned gpio, int value)
+{
+	return __gpio_set_value(gpio, value);
+}
+
+static inline int gpio_to_irq(unsigned gpio)
+{
+	if (likely(gpio < GPIO_NUMBER_VALUES))
+		return gpio + GPIO_IRQ_BASE;
+
+	return -EINVAL;
+}
+
+#include <asm-generic/gpio.h>		/* cansleep wrappers */
+#endif	/* !CONFIG_GPIOLIB */
 
 #if 0
 //GPIOLIB hook ups

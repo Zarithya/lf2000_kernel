@@ -1351,7 +1351,7 @@ static int lf2000_power_probe(struct platform_device *pdev)
 	{
 		detect_wall_charger(priv);
 	}
-	
+
 	/* set up work queue to handle the power button */
 	priv->power_button_tasks =
 		create_singlethread_workqueue("power button tasks");

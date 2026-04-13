@@ -18,6 +18,7 @@
 #include <linux/gpio.h>
 #include <linux/device.h>
 #include <linux/gfp.h>
+#include <mach/gpio.h>
 
 static void devm_gpio_release(struct device *dev, void *res)
 {

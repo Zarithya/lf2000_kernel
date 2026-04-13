@@ -61,13 +61,13 @@ typedef union _port_flags_t
 
 
 
-__inline__ int root_hub_feature(const u8 port,
+int root_hub_feature(const u8 port,
 				const u16 typeReq,
 				const u16 feature,
 				void	*buf
 				);
 
-__inline__	int get_otg_port_status(const u8 port,	
+int get_otg_port_status(const u8 port,	
 					char *status);
 
 int reset_and_enable_port(const u8 port);

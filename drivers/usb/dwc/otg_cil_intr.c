@@ -43,6 +43,9 @@
 #include "otg_regs.h"
 #include "otg_cil.h"
 #include "otg_pcd.h"
+#include <linux/lf2000/gpio.h>
+#include <mach/gpio.h>
+
 
 #ifdef DEBUG
 inline const char *op_state_str(dwc_otg_core_if_t *core_if)
@@ -176,6 +179,7 @@ int32_t dwc_otg_handle_otg_intr(dwc_otg_core_if_t *core_if)
                     op_state_str(core_if));
         //DWC_DEBUGPL(DBG_CIL, "gotgctl=%08x\n", gotgctl.d32);
 
+#ifndef DWC_HOST_ONLY
 	if (gotgint.b.sesenddet) {
 		DWC_DEBUGPL(DBG_ANY, " ++OTG Interrupt: "
 			    "Session End Detected++ (%s)\n",
@@ -368,6 +372,7 @@ int32_t dwc_otg_handle_otg_intr(dwc_otg_core_if_t *core_if)
 		DWC_DEBUGPL(DBG_ANY, " ++OTG Interrupt: "
 			    "Debounce Done++\n");
 	}
+#endif // DWC_HOST_ONLY
 
 	/* Clear GOTGINT */
 	dwc_write_reg32 (&core_if->core_global_regs->gotgint, gotgint.d32);
@@ -387,6 +392,7 @@ void w_conn_id_status_change(struct work_struct *p)
 	DWC_DEBUGPL(DBG_CIL, "gotgctl=%0x\n", gotgctl.d32);
 	DWC_DEBUGPL(DBG_CIL, "gotgctl.b.conidsts=%d\n", gotgctl.b.conidsts);
 
+#ifndef DWC_HOST_ONLY
         /* B-Device connector (Device Mode) */
         if (gotgctl.b.conidsts) {
 		dwc_otg_pcd_t *pcd;
@@ -428,6 +434,7 @@ void w_conn_id_status_change(struct work_struct *p)
 		dwc_otg_enable_global_interrupts(core_if);
                 hcd_start(core_if);
         }
+#endif // DWC_HOST_ONLY
 }
 
 
@@ -689,6 +696,7 @@ int32_t dwc_otg_handle_usb_suspend_intr(dwc_otg_core_if_t *core_if)
 
         DWC_DEBUGPL(DBG_ANY,"USB SUSPEND\n");
 
+#ifndef DWC_HOST_ONLY
         if (dwc_otg_is_device_mode(core_if)) {
 		dwc_otg_pcd_t *pcd;
 
@@ -752,6 +760,7 @@ int32_t dwc_otg_handle_usb_suspend_intr(dwc_otg_core_if_t *core_if)
                         core_if->op_state = A_HOST;
                 }
         }
+#endif // DWC_HOST_ONLY
 
 	/* Clear interrupt */
 	gintsts.d32 = 0;
@@ -815,6 +824,8 @@ int32_t dwc_otg_handle_common_intr(dwc_otg_core_if_t *core_if)
         gintsts_data_t gintsts;
 
         gintsts.d32 = dwc_otg_read_common_intr(core_if);
+
+        DWC_DEBUGPL(DBG_ANY, "interrupt %08x", gintsts);
 
         if (gintsts.b.modemismatch) {
                 retval |= dwc_otg_handle_mode_mismatch_intr(core_if);
